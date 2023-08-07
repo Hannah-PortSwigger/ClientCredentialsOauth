@@ -1,6 +1,4 @@
 import burp.api.montoya.MontoyaApi;
-import burp.api.montoya.core.ToolType;
-import burp.api.montoya.http.handler.*;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
 import org.json.JSONException;
@@ -11,29 +9,25 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static burp.api.montoya.http.handler.RequestToBeSentAction.continueWith;
-import static burp.api.montoya.http.handler.ResponseReceivedAction.continueWith;
-
-public class MyHttpHandler implements HttpHandler
+public class TokenRetriever
 {
-    private final MontoyaApi api;
     private final HttpRequest authorizationRequest;
     private final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor;
     private final ScheduledFuture<?> schedule;
-    private String tokenHeaderValue;
+    private final MontoyaApi api;
     private Duration authenticationRequestInterval;
+    private String tokenHeaderValue;
 
-    public MyHttpHandler(MontoyaApi api)
+    public TokenRetriever(MontoyaApi api, String oauthEndpoint, String clientId, String clientSecret, String audience)
     {
         this.api = api;
-
-        HttpRequest authorizationRequestWithoutBody = HttpRequest.httpRequestFromUrl(ClientCredentialsOauth.OAUTH_ENDPOINT).withMethod("POST").withHeader("Content-Type", "application/json");
+        HttpRequest authorizationRequestWithoutBody = HttpRequest.httpRequestFromUrl(oauthEndpoint).withMethod("POST").withHeader("Content-Type", "application/json");
 
         String requestBody = String.format(
                 "{\"client_id\":\"%s\",\"client_secret\":\"%s\",\"audience\":\"%s\",\"grant_type\":\"client_credentials\"}",
-                ClientCredentialsOauth.clientId,
-                ClientCredentialsOauth.clientSecret,
-                ClientCredentialsOauth.audience
+                clientId,
+                clientSecret,
+                audience
         );
 
         authorizationRequest = authorizationRequestWithoutBody.withBody(requestBody);
@@ -42,26 +36,11 @@ public class MyHttpHandler implements HttpHandler
 
         scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
         schedule = scheduledThreadPoolExecutor.scheduleAtFixedRate(this::retrieveToken, authenticationRequestInterval.getSeconds(), authenticationRequestInterval.getSeconds(), TimeUnit.SECONDS);
+
+        api.logging().logToOutput(ClientCredentialsOauth.NAME + " - Token retrieval polling started.");
     }
 
-    @Override
-    public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent requestToBeSent)
-    {
-        if (!requestToBeSent.toolSource().isFromTool(ToolType.EXTENSIONS))
-        {
-            return continueWith(requestToBeSent.withHeader("Authorization", tokenHeaderValue));
-        }
-
-        return continueWith(requestToBeSent);
-    }
-
-    @Override
-    public ResponseReceivedAction handleHttpResponseReceived(HttpResponseReceived responseReceived)
-    {
-        return continueWith(responseReceived);
-    }
-
-    public void retrieveToken()
+    private void retrieveToken()
     {
         HttpRequestResponse requestResponse = api.http().sendRequest(authorizationRequest);
 
@@ -76,7 +55,7 @@ public class MyHttpHandler implements HttpHandler
             tokenHeaderValue = tokenType + " " + accessToken;
         } catch (JSONException e)
         {
-            api.logging().logToError("Failed to parse JSON");
+            api.logging().logToError(ClientCredentialsOauth.NAME + " - Failed to parse JSON");
             tokenHeaderValue = null;
         }
     }
@@ -85,5 +64,12 @@ public class MyHttpHandler implements HttpHandler
     {
         schedule.cancel(true);
         scheduledThreadPoolExecutor.shutdown();
+
+        api.logging().logToOutput(ClientCredentialsOauth.NAME + " - Token retrieval polling stopped.");
+    }
+
+    public String getTokenHeaderValue()
+    {
+        return tokenHeaderValue;
     }
 }
