@@ -11,26 +11,18 @@ import java.util.concurrent.TimeUnit;
 
 public class TokenRetriever
 {
+    private final MontoyaApi api;
     private final HttpRequest authorizationRequest;
     private final ScheduledThreadPoolExecutor scheduledThreadPoolExecutor;
     private final ScheduledFuture<?> schedule;
-    private final MontoyaApi api;
     private Duration authenticationRequestInterval;
     private String tokenHeaderValue;
 
-    public TokenRetriever(MontoyaApi api, String oauthEndpoint, String clientId, String clientSecret, String audience)
+    public TokenRetriever(MontoyaApi api, ConfigurationProvider configurationProvider)
     {
         this.api = api;
-        HttpRequest authorizationRequestWithoutBody = HttpRequest.httpRequestFromUrl(oauthEndpoint).withMethod("POST").withHeader("Content-Type", "application/json");
 
-        String requestBody = String.format(
-                "{\"client_id\":\"%s\",\"client_secret\":\"%s\",\"audience\":\"%s\",\"grant_type\":\"client_credentials\"}",
-                clientId,
-                clientSecret,
-                audience
-        );
-
-        authorizationRequest = authorizationRequestWithoutBody.withBody(requestBody);
+        authorizationRequest = getAuthorizationRequest(configurationProvider);
 
         retrieveToken();
 
@@ -40,24 +32,24 @@ public class TokenRetriever
         api.logging().logToOutput(ClientCredentialsOauth.NAME + " - Token retrieval polling started.");
     }
 
-    private void retrieveToken()
+    private HttpRequest getAuthorizationRequest(ConfigurationProvider configurationProvider)
     {
-        HttpRequestResponse requestResponse = api.http().sendRequest(authorizationRequest);
+        final HttpRequest authorizationRequest;
+        HttpRequest authorizationRequestWithoutBody = HttpRequest.httpRequestFromUrl(configurationProvider.getOauthEndpoint()).withMethod("POST").withHeader("Content-Type", "application/json");
+        String requestBody = String.format(
+                "{\"client_id\":\"%s\",\"client_secret\":\"%s\",\"audience\":\"%s\",\"grant_type\":\"client_credentials\"}",
+                configurationProvider.getClientId(),
+                configurationProvider.getClientSecret(),
+                configurationProvider.getAudience()
+        );
+        authorizationRequest = authorizationRequestWithoutBody.withBody(requestBody);
 
-        try {
-            JSONObject jsonContent = new JSONObject(requestResponse.response().bodyToString());
+        return authorizationRequest;
+    }
 
-            String accessToken = jsonContent.getString("access_token");
-            String tokenType = jsonContent.getString("token_type");
-            int expiresIn = jsonContent.getInt("expires_in");
-
-            authenticationRequestInterval = Duration.ofSeconds(expiresIn);
-            tokenHeaderValue = tokenType + " " + accessToken;
-        } catch (JSONException e)
-        {
-            api.logging().logToError(ClientCredentialsOauth.NAME + " - Failed to parse JSON");
-            tokenHeaderValue = null;
-        }
+    public String getTokenHeaderValue()
+    {
+        return tokenHeaderValue;
     }
 
     public void shutdownAuthenticationRequests()
@@ -68,8 +60,27 @@ public class TokenRetriever
         api.logging().logToOutput(ClientCredentialsOauth.NAME + " - Token retrieval polling stopped.");
     }
 
-    public String getTokenHeaderValue()
+    private void retrieveToken()
     {
-        return tokenHeaderValue;
+        HttpRequestResponse requestResponse = api.http().sendRequest(authorizationRequest);
+
+        try {
+            JSONObject jsonContent = new JSONObject(requestResponse.response().bodyToString());
+
+            if (authenticationRequestInterval == null)
+            {
+                int expiresIn = jsonContent.getInt("expires_in");
+                authenticationRequestInterval = Duration.ofSeconds(expiresIn);
+            }
+
+            String accessToken = jsonContent.getString("access_token");
+            String tokenType = jsonContent.getString("token_type");
+
+            tokenHeaderValue = tokenType + " " + accessToken;
+        } catch (JSONException e)
+        {
+            api.logging().logToError(ClientCredentialsOauth.NAME + " - Failed to parse JSON");
+            tokenHeaderValue = null;
+        }
     }
 }

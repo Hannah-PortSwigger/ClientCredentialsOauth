@@ -13,16 +13,11 @@ public class ClientCredentialsOauth implements BurpExtension
         api.extension().setName(NAME);
 
         String sessionConfig = api.burpSuite().exportProjectOptionsAsJson("project_options.sessions");
-        ConfigurationParser configurationParser = new ConfigurationParser(api, sessionConfig);
+        ConfigurationProvider configurationProvider = new ConfigurationProvider(api.logging(), sessionConfig);
 
-        String oauthEndpoint = configurationParser.getOauthEndpoint();
-        String clientId = configurationParser.getClientId();
-        String clientSecret = configurationParser.getClientSecret();
-        String audience = configurationParser.getAudience();
-
-        if (oauthEndpoint != null && clientId != null && clientSecret != null && audience != null)
+        if (configurationProvider.isValid())
         {
-            TokenRetriever tokenRetriever = new TokenRetriever(api, oauthEndpoint, clientId, clientSecret, audience);
+            TokenRetriever tokenRetriever = new TokenRetriever(api, configurationProvider);
 
             api.http().registerSessionHandlingAction(new MySessionHandlingAction(tokenRetriever));
 
