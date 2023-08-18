@@ -7,10 +7,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ConfigurationProvider {
-    public static final String OAUTH_ENDPOINT = "oauth_endpoint";
-    public static final String KEY_CLIENT_ID = "client_id";
-    public static final String KEY_CLIENT_SECRET = "client_secret";
-    public static final String KEY_AUDIENCE = "audience";
+    private static final String OAUTH_ENDPOINT = "oauth_endpoint";
+    private static final String KEY_CLIENT_ID = "client_id";
+    private static final String KEY_CLIENT_SECRET = "client_secret";
+    private static final String KEY_AUDIENCE = "audience";
     private static final String DESCRIPTION_REGEX = "\"description\":\"(\\{.+\\})\"";
     private String oauthEndpoint;
     private String clientId;
