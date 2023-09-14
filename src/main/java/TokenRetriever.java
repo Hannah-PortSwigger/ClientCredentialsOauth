@@ -9,7 +9,8 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class TokenRetriever {
+public class TokenRetriever
+{
     private static final String CONTENT_TYPE = "application/json";
     private static final String KEY_EXPIRES_IN = "expires_in";
     private static final String KEY_ACCESS_TOKEN = "access_token";
@@ -21,7 +22,8 @@ public class TokenRetriever {
     private Duration authenticationRequestInterval;
     private String tokenHeaderValue;
 
-    public TokenRetriever(MontoyaApi api, ConfigurationProvider configurationProvider) {
+    public TokenRetriever(MontoyaApi api, ConfigurationProvider configurationProvider)
+    {
         this.api = api;
         this.authorizationRequest = getAuthorizationRequest(configurationProvider);
         this.scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
@@ -35,7 +37,8 @@ public class TokenRetriever {
         api.logging().logToOutput(ClientCredentialsOauth.NAME + " - Token retrieval polling started.");
     }
 
-    private HttpRequest getAuthorizationRequest(ConfigurationProvider configurationProvider) {
+    private HttpRequest getAuthorizationRequest(ConfigurationProvider configurationProvider)
+    {
         String requestBody = String.format(
                 "{\"client_id\":\"%s\",\"client_secret\":\"%s\",\"audience\":\"%s\",\"grant_type\":\"client_credentials\"}",
                 configurationProvider.getClientId(),
@@ -49,30 +52,37 @@ public class TokenRetriever {
                 .withBody(requestBody);
     }
 
-    public String getTokenHeaderValue() {
+    public String getTokenHeaderValue()
+    {
         return tokenHeaderValue;
     }
 
-    public void shutdownAuthenticationRequests() {
+    public void shutdownAuthenticationRequests()
+    {
         schedule.cancel(true);
         scheduledThreadPoolExecutor.shutdown();
         api.logging().logToOutput(ClientCredentialsOauth.NAME + " - Token retrieval polling stopped.");
     }
 
-    private void retrieveToken() {
+    private void retrieveToken()
+    {
         HttpRequestResponse requestResponse = api.http().sendRequest(authorizationRequest);
 
-        try {
+        try
+        {
             JSONObject jsonContent = new JSONObject(requestResponse.response().bodyToString());
             updateToken(jsonContent);
-        } catch (JSONException e) {
+        } catch (JSONException e)
+        {
             api.logging().logToError(ClientCredentialsOauth.NAME + " - Failed to parse JSON");
             tokenHeaderValue = null;
         }
     }
 
-    private void updateToken(JSONObject jsonContent) {
-        if (authenticationRequestInterval == null) {
+    private void updateToken(JSONObject jsonContent)
+    {
+        if (authenticationRequestInterval == null)
+        {
             int expiresIn = jsonContent.getInt(KEY_EXPIRES_IN);
             authenticationRequestInterval = Duration.ofSeconds(expiresIn);
         }

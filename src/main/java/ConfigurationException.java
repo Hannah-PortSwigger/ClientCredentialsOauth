@@ -1,5 +1,7 @@
-public class ConfigurationException extends Exception {
-    public ConfigurationException(String message) {
+public class ConfigurationException extends Exception
+{
+    public ConfigurationException(String message)
+    {
         super(message);
     }
 }
