@@ -4,8 +4,8 @@ Extension to handle Client Credentials OAuth in Burp Suite Enterprise
 ## Usage
 1. Add a session handling rule to Burp Pro/Community that invokes the Burp extension.
     - Build extension JAR
-    - Load extension into Burp Suite Professional or Commmunity Edition (Extensions > Installed > Add) *Ignore any errors on load*
-    - Go to "Settings > Sessions > Session handling rules > Add > Ruke actions > Add > Invoke a Burp extension > Extension action handler: Client credentials flow"
+    - Load extension into Burp Suite Professional or Community Edition (Extensions > Installed > Add) *Ignore any errors on load*
+    - Go to "Settings > Sessions > Session handling rules > Add > Rule actions > Add > Invoke a Burp extension > Extension action handler: Client credentials flow"
 3. Provide the description for the session handling rule in the following format:
 ```
 {"oauth_endpoint":"https://ENDPOINT_URL","client_id":"CLIENT_ID","client_secret":"CLIENT_SECRET","audience":"AUDIENCE"}
