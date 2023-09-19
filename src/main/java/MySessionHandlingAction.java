@@ -21,7 +21,16 @@ public class MySessionHandlingAction implements SessionHandlingAction
     @Override
     public ActionResult performAction(SessionHandlingActionData actionData)
     {
-        HttpRequest requestToBeSent = actionData.request().withHeader("Authorization", tokenRetriever.getTokenHeaderValue());
+        HttpRequest requestToBeSent;
+
+        if (actionData.request().hasHeader("authorization"))
+        {
+            requestToBeSent = actionData.request().withHeader("authorization", tokenRetriever.getTokenHeaderValue());
+        }
+        else
+        {
+            requestToBeSent = actionData.request().withHeader("Authorization", tokenRetriever.getTokenHeaderValue());
+        }
 
         return ActionResult.actionResult(requestToBeSent);
     }

@@ -59,5 +59,5 @@ Extension to handle Client Credentials OAuth in Burp Suite Enterprise
 
 ## Future improvements
 - [X] Migrate to session handling rule for easier configuration
+- [X] Add check to see if "authorization" header is present, as opposed to "Authorization"
 - [ ] Provide UI in Desktop for easier description configuration
-- [ ] Add check to see if "authorization" header is present, as opposed to "Authorization"
