@@ -2,6 +2,12 @@
 Extension to handle Client Credentials OAuth in Burp Suite Enterprise
 
 ## Usage
+1. Build the extension or use the latest release.
+2. [Load the extension into Burp Enterprise](https://portswigger.net/burp/documentation/enterprise/working/scans/extensions), and add the extension to your Site Details page
+3. [Configure your session handling rule](#configuring-your-session-handling-rule-in-burp-suite-professionalcommunity) in Burp Suite Professional
+4. [Import the scan configuration into Enterprise](https://portswigger.net/burp/documentation/enterprise/working-with-scans/scan-configurations#importing-scan-configurations) and add the scan configuration to your Site Details page
+
+### Configuring your session handling rule in Burp Suite Professional/Community
 1. Add a session handling rule to Burp Pro/Community that invokes the Burp extension.
     - Build extension JAR
     - Load extension into Burp Suite Professional or Community Edition (Extensions > Installed > Add) *Ignore any errors on load*
@@ -60,4 +66,4 @@ Extension to handle Client Credentials OAuth in Burp Suite Enterprise
 ## Future improvements
 - [X] Migrate to session handling rule for easier configuration
 - [X] Add check to see if "authorization" header is present, as opposed to "Authorization"
-- [ ] Provide UI in Desktop for easier description configuration
+- [ ] Provide UI in Desktop for easier description configuration - Currently on a separate branch
