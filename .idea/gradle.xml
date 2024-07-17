@@ -5,7 +5,8 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="/usr/local/Cellar/gradle/8.1.1/libexec" />
+        <option name="gradleHome" value="/usr/local/Cellar/gradle/8.7/libexec" />
+        <option name="gradleJvm" value="temurin-20" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
