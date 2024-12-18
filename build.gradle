@@ -3,15 +3,14 @@ plugins {
 }
 
 group = 'org.example'
-version = '1.0-SNAPSHOT'
+version = '2.0'
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    compileOnly 'net.portswigger.burp.extensions:montoya-api:2023.10'
-    implementation 'org.json:json:20231013'
+    compileOnly 'net.portswigger.burp.extensions:montoya-api:2024.11'
 }
 
 jar {

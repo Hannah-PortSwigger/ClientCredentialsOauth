@@ -1,6 +1,7 @@
 import burp.api.montoya.logging.Logging;
-import org.json.JSONException;
-import org.json.JSONObject;
+import burp.api.montoya.utilities.json.JsonException;
+import burp.api.montoya.utilities.json.JsonNode;
+import burp.api.montoya.utilities.json.JsonObjectNode;
 
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -13,6 +14,7 @@ public class ConfigurationProvider
     private static final String KEY_CLIENT_SECRET = "client_secret";
     private static final String KEY_AUDIENCE = "audience";
     private static final String DESCRIPTION_REGEX = "\"description\":\"(\\{.+\\})\"";
+
     private String oauthEndpoint;
     private String clientId;
     private String clientSecret;
@@ -28,12 +30,14 @@ public class ConfigurationProvider
             String unescapedDescription = sessionHandlingActionDescription.replaceAll("\\\\", "");
             logging.logToOutput(ClientCredentialsOauth.NAME + " - Session handling description found.");
 
-            JSONObject jsonObject = new JSONObject(unescapedDescription);
-            populateConfigurationFromJson(jsonObject);
-        } catch (JSONException jsonException)
+            JsonObjectNode jsonNode = (JsonObjectNode) JsonNode.jsonNode(unescapedDescription);
+            populateConfigurationFromJson(jsonNode);
+        }
+        catch (JsonException jsonException)
         {
             logging.logToError(ClientCredentialsOauth.NAME + " - Failed to retrieve configuration values.\r\n" + jsonException);
-        } catch (ConfigurationException configurationException)
+        }
+        catch (ConfigurationException configurationException)
         {
             logging.logToError(ClientCredentialsOauth.NAME + " - %s.\r\n".formatted(configurationException));
         }
@@ -72,11 +76,11 @@ public class ConfigurationProvider
         return matcher.find() ? Optional.ofNullable(matcher.group(1)) : Optional.empty();
     }
 
-    private void populateConfigurationFromJson(JSONObject jsonContent)
+    private void populateConfigurationFromJson(JsonObjectNode jsonContent)
     {
-        oauthEndpoint = jsonContent.optString(OAUTH_ENDPOINT, null);
-        clientId = jsonContent.optString(KEY_CLIENT_ID, null);
-        clientSecret = jsonContent.optString(KEY_CLIENT_SECRET, null);
-        audience = jsonContent.optString(KEY_AUDIENCE, null);
+        oauthEndpoint = jsonContent.getString(OAUTH_ENDPOINT);
+        clientId = jsonContent.getString(KEY_CLIENT_ID);
+        clientSecret = jsonContent.getString(KEY_CLIENT_SECRET);
+        audience = jsonContent.getString(KEY_AUDIENCE);
     }
 }

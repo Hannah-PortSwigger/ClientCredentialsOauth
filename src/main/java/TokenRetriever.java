@@ -1,8 +1,8 @@
 import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.message.HttpRequestResponse;
 import burp.api.montoya.http.message.requests.HttpRequest;
-import org.json.JSONException;
-import org.json.JSONObject;
+import burp.api.montoya.utilities.json.JsonNode;
+import burp.api.montoya.utilities.json.JsonObjectNode;
 
 import java.time.Duration;
 import java.util.concurrent.ScheduledFuture;
@@ -29,6 +29,7 @@ public class TokenRetriever
         this.scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(1);
 
         retrieveToken();
+
         this.schedule = scheduledThreadPoolExecutor.scheduleAtFixedRate(this::retrieveToken,
                 authenticationRequestInterval.getSeconds(),
                 authenticationRequestInterval.getSeconds(),
@@ -68,22 +69,17 @@ public class TokenRetriever
     {
         HttpRequestResponse requestResponse = api.http().sendRequest(authorizationRequest);
 
-        try
-        {
-            JSONObject jsonContent = new JSONObject(requestResponse.response().bodyToString());
-            updateToken(jsonContent);
-        } catch (JSONException e)
-        {
-            api.logging().logToError(ClientCredentialsOauth.NAME + " - Failed to parse JSON");
-            tokenHeaderValue = null;
-        }
+        api.logging().logToOutput(requestResponse.response().toString());
+        JsonObjectNode jsonContent = (JsonObjectNode) JsonNode.jsonNode(requestResponse.response().bodyToString());
+
+        updateToken(jsonContent);
     }
 
-    private void updateToken(JSONObject jsonContent)
+    private void updateToken(JsonObjectNode jsonContent)
     {
         if (authenticationRequestInterval == null)
         {
-            int expiresIn = jsonContent.getInt(KEY_EXPIRES_IN);
+            long expiresIn = jsonContent.getLong(KEY_EXPIRES_IN);
             authenticationRequestInterval = Duration.ofSeconds(expiresIn);
         }
 
